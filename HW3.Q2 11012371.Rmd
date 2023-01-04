@@ -1,0 +1,522 @@
+---
+title: "HW3.Q2"
+author: "Safia 11012371"
+date: "2022-11-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+```{r}
+library(readr)
+library(Hmisc)
+library(tidyverse)
+library(dplyr)
+library(devtools)
+library(ggpubr)
+library(psych)
+q2 <- read_csv("Airfares.csv")
+#View(q2)
+```
+```{r}
+dim(q2)
+str(q2)
+describe(q2)
+summary(q2)
+```
+#The dataset has no missing values but have special characters in the varaiables:E_CODE & S_CODE
+#Numerical Varaiables : Coupon, NEW, HI, S_INCOME, E_INCOME, S_POP, E_POP, DISTANCE, PAX, FARE(Target varaiable)
+```{r}
+library(Amelia)
+missmap(q2)
+```
+
+#Categorical Varaiables: S_CODE, S_CITY, E_CODE, E_CITY, VACATION, SW, SLOT, GATE, 
+
+#Creating numerical varaiables dataset seperately 
+```{r}
+q2.num <- subset(q2,select=c('COUPON', 'NEW', 'HI', 'S_INCOME', 'E_INCOME', 'S_POP', 'E_POP', 'DISTANCE', 'PAX', 'FARE'))
+#View(q2.num)
+```
+
+#Finding correlation between numerical varaiables with target varaiable (FARE)
+```{r}
+library(PerformanceAnalytics)
+
+chart.Correlation(q2.num,
+                   method="pearson",
+                   histogram=TRUE,
+                   pch=16)
+```
+```{r}
+library(corrplot)
+res=cor(q2.num)
+corrplot(res, type="lower", tl.col="#252525",tl.cex=0.9 )
+```
+
+#From the above we can see that distance and coupon has the strongest positive correlation with the target varaiable FARE. The positive sign and graphs in the correlation table clearly shows that coupon and distance have strong, postive and linear relationship with FARE but comparing the values of both the distance shows more strong correlation with the FARE than coupoun also when we see the colour dots in the plot it's also visible.
+#We can say that more the distance between S_City and E_City higher will be the fare.
+
+#One main thing to notice here is that distance and coupon also show correlation with eachother means there is a chance of multicollinearity among each other.
+
+#Concluding above, Distance is the best predicator of FARE.
+```{r}
+#Scatterplot 
+plot(q2.num$FARE,q2.num$COUPON,xlab="Coupon",ylab="Fare",pch=25,col="darkblue", main = "COUPON effect on FARE")
+#Shows that there is a positive correlation b/w both. 
+plot(q2.num$FARE,q2.num$NEW,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "NEW effect on FARE")
+#Doesn't shows any relationship with each other.So we can say that there is no effect of new on the fare.
+plot(q2.num$FARE,q2.num$HI,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "HI effect on FARE")
+#Doesn't shows any relationship with each other.The data is clustered and also shows outliers.
+plot(q2.num$FARE,q2.num$S_INCOME,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "S_Income effect on FARE")
+#Doesn't shows any relationship with each other.The data is clustered and also shows outliers.
+plot(q2.num$FARE,q2.num$E_INCOME,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "E_Income effect on FARE")
+#Doesn't shows any relationship with each other.The data is clustered and also shows outliers.
+plot(q2.num$FARE,q2.num$S_POP,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "S_POP effect on FARE")
+#No or null relationship among each other.There are outliers as well.
+plot(q2.num$FARE,q2.num$E_POP,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "E_POP effect on FARE")
+#No or null relationship among each other.The data is clustered at some points and there are outliers as well.
+plot(q2.num$FARE,q2.num$DISTANCE,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "Distance effect on FARE")
+#The distance has a strong, positive and linear relationship with the fare.
+#Strongly positively correlated is an indication of better predictability.
+plot(q2.num$FARE,q2.num$PAX,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "Pax effect on FARE")
+#No, null relationship among each other, the data is clustered at some points and also shows outliers in the data.
+plot(q2.num$DISTANCE,q2.num$COUPON,xlab="NEW",ylab="Fare",pch=25,col="darkblue", main = "Distance effect on Coupon")
+
+```
+
+
+Q2 part b 
+#Making a seperate subset of the categorical varaiables with the target varaiable R 
+```{r}
+ q2.cat <- subset(q2,select=c('VACATION', 'SW', 'SLOT', 'GATE','FARE'))
+#View(q2.cat)
+library(pivottabler)
+library(tidyverse)
+library(lessR)
+options(scipen = 999)
+library(dplyr)
+#Pivot table of Percentage of Flights in each category of Vacation
+Table_Vac <- q2.cat %>%
+group_by(VACATION) %>%
+summarise( Fare.Total = sum(FARE), Fare.Average = mean(FARE), Flight.Percentage = n()*100/dim(q2.cat)[1])
+Table_Vac
+BarChart(VACATION, Fare.Average, data=Table_Vac)
+
+
+```
+```{r}
+##Pivot table of Percentage of Flights in each category of SW
+Table_SW <- q2.cat %>%
+group_by(SW) %>%
+summarise( Fare.Total = sum(FARE), Fare.Average = mean(FARE), Flight.Percentage = n()*100/dim(q2.cat)[1])
+Table_SW
+BarChart(SW, Fare.Average, data=Table_SW)
+
+```
+```{r}
+##Pivot table of Percentage of Flights in each category of SLOT
+Table_SLOT <- q2.cat %>%
+group_by(SLOT) %>%
+summarise( Fare.Total = sum(FARE), Fare.Average = mean(FARE), Flight.Percentage = n()*100/dim(q2.cat)[1])
+Table_SLOT
+BarChart(SLOT, Fare.Average, data=Table_SLOT)
+```
+```{r}
+##Pivot table of Percentage of Flights in each category of GATE.
+Table_GATE <- q2.cat %>%
+group_by(GATE) %>%
+summarise( Fare.Total = sum(FARE), Fare.Average = mean(FARE), Flight.Percentage = n()*100/dim(q2.cat)[1])
+Table_GATE
+BarChart(GATE, Fare.Average, data=Table_GATE)
+
+```
+
+#From the above results we generated from the categorical varaiables predicators only, we conclude that the flight percentage in each category is around 30 and 70 percent for each varaiable. 
+#Comparing all other predicators, South west airline "SW" shows the major effect on fare price whether this airline covers that route or not , the difference is very obious especially visually looking at the bar chart. We can see that the southwest airline shows great decarease in the average fare, without taking in consideration the other varaiables. So we conclude that in categoriacal varaiables, SW is the major predicator of the FARE of the flights.
+
+#But looking at each varaiable individual and the average FARE price with the flight percentage and then comapring with each other we see that highest fare is for the CONSTRAINED GATE and lowest for the SW_YES(routes where southwest airline flies). Interpreting it, this means that where southwest airline offers the cheapest fare and the airports where there are constrained gates are the expensive in terms of fare of the flights.
+
+Q2 Part C i 
+
+#Partition of dataset into trainning and validation set is done for selection and validation of model.
+#The main purpose of splitting the data into two sets i.e trainning and validation is to make sure that our model is not overfitted or underfitted means that our model is not only good at classifing the sample on which the model is made rather it is also good at classifing samples on the new data that was never used for building model/unseen data .
+#Trainning dataset, this data is actually use to train the model or algorithm, and you already has expections of the model to predict.
+#Whereas, the valadition dataset is used for the evaluation of the model on a complete new dataset and it helps to know the predictive power of the model for the future aswell.
+
+
+#Before Partioning we will convert the categorical varaiable into factors.
+```{r}
+#q2[7,8,14,15] <- lapply(q2[7,8,14,15], as.factor) 
+q2$VACATION <- as.factor(q2$VACATION)
+q2$SW <- as.factor(q2$SW)
+q2$SLOT <- as.factor(q2$SLOT)
+q2$GATE <- as.factor(q2$GATE)
+str(q2)
+```
+
+#Partioning the dataset by 70 and 30.
+#70% Trainning dataset & 30%Validation Dataset 
+
+```{r}
+#using set.seed to reproducing the partition 
+set.seed(1)
+t.index <- sample(c(1:dim(q2)[1]), dim(q2)[1]*0.7)
+t.df <- q2[t.index , ]
+dim(t.df)
+v.df <- q2[-t.index , ]
+dim(v.df)
+```
+
+Q2 Part C ii
+
+#Before running the stepwise regression to see which predictors have effect on the target varaiable FARE.
+#Running the lm function on all varaiable except 4 as stated in the question on trainning dataset.
+```{r}
+selected.variable <- c(5:18)
+t.index <- sample(c(1:dim(q2)[1]), dim(q2)[1]*0.7)
+t.df2 <- q2[t.index , selected.variable]
+dim(t.df2)
+v.df2 <- q2[-t.index ,selected.variable]
+dim(v.df2)
+```
+
+#Running lm function on 14 predicators including all numerical and actegorical varaiables
+```{r}
+t.df2.lm <- lm(FARE ~ ., data = t.df2)
+
+#  use options() to ensure numbers are not displayed in scientific notation.
+options(scipen = 999)
+summary(t.df2.lm)
+```
+#From the above summary output, we observe that except coupon, new and S_INCOME all the other varaiables are statically signinficant.But we will run stepwise regression to find that are these varaiables good preditors of FARE or not.
+
+#Finding the accuracy, running this model on the validation dataset.
+```{r}
+library(forecast)
+#making predictions on the validation dataset to evaluate the predictive performance of the model.
+t.df2.lm.pred <- predict(t.df2.lm, v.df2)
+#to avoid scientific notation
+options(scipen=999)
+some.residuals <- v.df2$FARE[1:20] - t.df2.lm.pred[1:20]
+data.frame("Predicted" = t.df2.lm.pred [1:20], "Actual" = v.df2$FARE[1:20],
+           "Residual" = some.residuals)
+```
+#Finding the accuracy using accuracy report
+```{r}
+accuracy(t.df2.lm.pred, v.df2$FARE)
+round(accuracy(t.df2.lm.pred, v.df2$FARE))
+```
+
+#From the above accuracy report we observe that the value of mean error is negative -1 and the RMSE in 35.06. This shows that errors are really small when comapre with the fare of the tickets of flights, it means that the level of error is signinficant and we should not ignore them.
+
+```{r}
+library(forecast)
+t.df2.lm.pred <- predict(t.df2.lm, v.df2)
+all.residuals <- v.df2$FARE - t.df2.lm.pred 
+hist(all.residuals, breaks = 25, xlab = "Residuals", main = "")
+```
+
+#We plotted the histogram of the residuals to check whether there is an overpredication or underpredication.
+#From the above graph we can see that the residuals lies between the -50 and 50.The positive shows that there is an underpredication of the fare.
+
+#Stewpwise regression in all directons 
+#backward direction
+```{r}
+t.df2.lm.step <- step(t.df2.lm, direction = "backward")
+```
+
+#To find which varaiables we have to remove and which to keep as they are good predicators, we will run summary for this.
+```{r}
+summary(t.df2.lm.step)
+```
+#From the above summary output generated from stepwise regression in backward direction, we observe that all the varaiables are statically significant except S_INCOME.
+
+#Now we will find the accuracy for this model - backward stepwise direction
+```{r}
+library(forecast)
+t.df2.lm.step.pred <- predict(t.df2.lm.step, v.df2)
+accuracy(t.df2.lm.step.pred, v.df2$FARE)
+round(accuracy(t.df2.lm.step.pred, v.df2$FARE))
+```
+
+##From the above stepwise regression, backward direction we get the model with 11 predicators, with the RMSE of 35.14 and ME in negative .7687. Also this model has same RMSE error value which is 35 as of the original model with all the predicators included.
+
+#Stepwise regression, forward direction
+#Running to see which varaiables in the model are good predictors of FARE of the tickets
+```{r}
+#The first step to do stepwise regression in the forward direction we will create a linear regression model with no predictors 
+t.df2.lm.null <- lm(FARE~1, data = t.df2)
+# running forward regression.
+t.df2.lm.stepf <- step(t.df2.lm.null, scope=list(lower=t.df2.lm.null, upper=t.df2.lm), direction = "forward")
+```
+#Now to see which varaiables are good predicators in the chosen model running stepwise regression in forward direction we will run the summary
+```{r}
+summary(t.df2.lm.stepf)
+```
+#From he above summary output we observe that there are 11 varaiables in the model and all the varaiables are highly signinfiacnt except S_INCOME with the adjusted R square of 0.78 and it is same as of the original model with all the varaiables and the model chosen from the backward stepwise regression. Now to check the accuracy we will run to get accuracy report to see the RMSE and ME errors.
+
+```{r}
+t.df2.lm.stepf.pred <- predict(t.df2.lm.stepf, v.df2)
+accuracy(t.df2.lm.stepf.pred, v.df2$FARE)
+round(accuracy(t.df2.lm.stepf.pred, v.df2$FARE))
+```
+#From the above accuracy report we get the mean square equals to -1 and RMSE equals to 35, for the forward elimination model,with the 11 predictors. The errors values and the predicators in this model is same as the backward model.Also the thing to consider here is that ME and RMSE value is same for all the models chosen from backward and forward elimination and original model aswell (which has all the 14 varaiables).
+
+#Running stepwise for bothways
+```{r}
+#run stepwise regression for both
+t.df2.lm.stepb <- step(t.df2.lm, direction = "both")
+```
+#Calling the summary to see which varaiables are good predictors of FARE of the tickets
+```{r}
+summary(t.df2.lm.stepb)
+```
+#From the above summary output we conclude that the model chosen from the stepwise regression is same as the backward and forward elimination stepwise regression, having same 11 predicators in the model with same adjusted and multiple R squared values.
+
+##to double check now we will generate the accuracy report 
+```{r}
+t.df2.lm.stepb.pred <- predict(t.df2.lm.stepb, v.df2)
+accuracy(t.df2.lm.stepb.pred, v.df2$FARE)
+round(accuracy(t.df2.lm.stepb.pred, v.df2$FARE))
+```
+#From the above accuracy report we conclude that all the models obtained from forward, backward and both elimination have same RMSE and ME error values, with same 11 predictors in it. One important thing to mention is that the RMSE and ME value is same for all the models obtained and the original model with all of 14 predictors.
+
+
+#From the stepwise regression, the model choosen has 11 varaiables, which has the highest adjusted R square and lowest AIC value. We always select best model based on higher R2 value, and lowest RMSE, AIC and CP. Here our metrices to consider our higher R2 and lowest AIC. But the point is all directions we are getting same predictors model.
+
+
+Q 2 part c iii
+
+#Exhaustive search 
+
+```{r}
+library(leaps)
+t.df2.ex <- regsubsets(FARE ~ ., data = t.df2, nbest = 1, nvmax = dim(t.df2)[2],
+                     method = "exhaustive")
+sum <- summary(t.df2.ex)
+```
+
+```{r}
+# show models
+sum$which
+#this is showing 13 variables models to predict fare 
+```
+
+```{r}
+# show metrics to see which model is the best based on them 
+round((sum$rsq),4)
+max(sum$rsq)
+which.max(sum$rsq)
+
+#from the above results we can see that the max value of the R-square is obtained from the 13 predictors model but from the values we can see that the R square increases till model 9 predictors and then remain constant.
+```
+
+```{r}
+# Show adjusted R2
+round((sum$adjr2),4)
+max(sum$adjr2)
+which.max(sum$adjr2)
+
+#From the above results we observe that the highest adjusted R2 is obtained from the 11 predictors model. Higher the R2 better the model is.
+```
+
+```{r}
+#Shows CP values
+round((sum$cp),4)
+min(sum$cp)
+which.min(sum$cp)
+
+#From the above results calculated for CP we observe that model with 11 predictors model have the minimum CP value. Lower the CP value of the model better the model it is.
+```
+#To choose the best model we have to see the following metrics, The best model has highest adjusted R square value or the lowest CP value for selection. From the above results we see that the model with 11 predictors, we get the highest adjusted R2 and also for the same model we get the minimum CP value. So we will select the model with 11 predictors.But looking at the R square we get the result that 13 predictors model is the best model but our goal is to minimize the predictors to get the best fit model so ideally we will choose 11 predicators model as the best fit model using the exhaustive search method.
+
+```{r}
+#the best fit model 
+best.model.ex<- lm(formula=FARE ~ VACATION + SW + HI + S_INCOME + E_INCOME + S_POP + E_POP + SLOT + GATE + DISTANCE + PAX, data = t.df2)
+sm <- summary(best.model.ex)
+paste(paste("Multiple R-squared: ",round(sm$r.squared,digits=6)), 
+      paste("Adjusted R-squared: ",round(sm$adj.r.squared,digits=6)))
+```
+
+Q2 part c iv
+
+#Predictive accuracy of the Stepwise regression models 
+#Choosing the 11 predictor model - stepwise regression models
+
+```{r}
+step.model.lm <- lm(formula = FARE ~ VACATION + SW + HI + S_INCOME + E_INCOME + 
+    S_POP + E_POP + SLOT + GATE + DISTANCE + PAX, data = t.df2)
+summary(step.model.lm)
+#Predicting by running on validation dataset
+step.model.pred <- predict(step.model.lm , v.df2)
+#Accuracy report
+library(caret)
+accuracy(step.model.pred , v.df2$FARE)
+
+```
+##Predictive accuracy of the exhaustive search model 
+#Choosing the 11 predictor model - exhaustive search model 
+```{r}
+exh.model.lm <- lm(formula = FARE ~ VACATION + SW + HI + S_INCOME + E_INCOME + S_POP + E_POP + SLOT + GATE + DISTANCE + PAX, data = t.df2)
+summary(exh.model.lm)
+
+#Predicting by running on validation dataset
+exh.model.lm.pred <- predict(exh.model.lm, v.df2)
+#Accuracy report
+accuracy(exh.model.lm.pred, v.df2$FARE)
+```
+#Interpreting the above results by looking at the accuracy reports of both the stepwise regression and exhausitive search we consider the Root mean squared error to find the accuracy and a good metric to check that how accurately your model predicts the responses.
+#In this case comparing the both RMSE value, we see that
+#RMSE - stepwise = 35.14331
+#RMSE - exhaustive = 35.14331
+#We are getting exactly the same because the same no of predictors are selected for the best fit model using the both techniques, hence we say that both the techniques give same RMSE so we can't compare and choose but we choose the lowest one, considering the other errors such as ME we observe that the difference between the RMSE and ME is quiet big which is a good thing. Also the magnitutude pof RMSE is small which is a good indicator of the best fit model.
+
+#Creating the lift charts
+```{r}
+library(lift)
+par(mfrow=c(1,2))
+plotLift(step.model.pred,labels =step.model.pred, n.buckets=5,main="Model StepWise Regression")
+plotLift(exh.model.lm.pred,labels = exh.model.lm.pred, n.buckets=5,main="Model Exhaustive Search")
+```
+#Visually by plotting the lift chart we see both the graphs same because the best fit model obtain from using both techniques is same.
+
+Q 2 part c v
+#Using the exhaustive model, predicting the average for this route with all these characteristics.
+#Since we selected with 11 predictors - the best fit model
+```{r}
+new.data<- data.frame("COUPON" = 1.202, "NEW" = 3, "VACATION" = "No", "SW" = "No","HI" = 4442.141, "S_INCOME" = 28760, "E_INCOME" = 27664,"S_POP" = 4557004, "E_POP" = 3195503, "SLOT" = "Free","GATE" = "Free", "PAX" = 12782, "DISTANCE" = 1976)
+
+ predict(exh.model.lm, new.data)
+```
+#Interpretation: Using the 11 predictors, best fit model obtained from running the exhaustive search model, by running the trainned model on the given values for each charateristics, we obtain the average fare value of $249.68
+
+Q 2 part c vi
+#Keeping all the given values same except that now Soth West airline covers this route.
+```{r}
+unique(t.df2$SW)
+
+new.data.SW <- data.frame("COUPON" = 1.202, "NEW" = 3, "VACATION" = "No", "SW" = "Yes","HI" = 4442.141, "S_INCOME" = 28760, "E_INCOME" = 27664,"S_POP" = 4557004, "E_POP" = 3195503, "SLOT" = "Free","GATE" = "Free", "PAX" = 12782, "DISTANCE" = 1976)
+
+ predict(exh.model.lm, new.data.SW)
+ 
+ Difference.in.the.fare.for.SW <- round((249.5821 - 211.313),3)
+  Difference.in.the.fare.for.SW 
+ 
+```
+#The average fare predicted when the sout west airline doesn't covers that route = $249.68.
+#The average fare predicted when the southwest airline covers that route = $211.313
+#The diffrenve in the average fare when the southwest covers thr route is $38.26 which means that the south west airline has cheap fares.
+
+Q 2 part c vii
+
+Looking at the variables HI is the market concentration, NEW means that number of new carriers entering on the route between Q3-96 and Q2-97 and PAX  refers to Number of passengers on that route during period of data collection can only be calculated when there is a flight on a particular route and are strongly dependent on it whereas the other variables such as income and population of both cities of the flight route and coupon are not flight or route dependent it's data is readily available anytime
+Looking at the other variables and their description i.e Gate, slots and vacations variables, they can be predicted knowing the flight route and the airport rules and regulations.Distance also is not flight dependent as it is calculated before flight
+
+
+Q 2 part c viii
+#Finding the model that only have varaiables that are not flight dependent 
+```{r}
+flight.inde <- regsubsets(FARE~ COUPON + VACATION+ SW + S_INCOME + E_INCOME + S_POP + E_POP + SLOT
+                            + GATE + DISTANCE,
+                           data = t.df2, nbest=1,nvmax=dim(train)[2], 
+                           method = "exhaustive")
+flight.inde 
+#For the results running the summary to find the metrics values 
+smm <- summary(flight.inde)
+
+#Looking at the models 
+smm$which
+
+#Now to see which model is the best fit we need to see the metrices based on which we will make decison
+```
+```{r}
+#Metrices 
+
+# show metrics to see which model is the best based on them 
+round((smm$rsq),4)
+max(smm$rsq)
+which.max(smm$rsq)
+
+#from the above results we can see that the max value of the R-square is obtained from the 10 predictors model
+```
+```{r}
+# Show adjusted R2
+round((smm$adjr2),4)
+max(smm$adjr2)
+which.max(smm$adjr2)
+
+#From the above results we observe that the highest adjusted R2 is obtained from the 8 predictors model. Higher the adjusted R2 better the model is.
+```
+
+```{r}
+#Calculate CP values
+round((smm$cp),4)
+min(smm$cp)
+which.min(smm$cp)
+
+#From the above results calculated for CP we observe that model with 6 predictors model have the minimum CP value. Lower the CP value of the model better the model it is.
+```
+#To find the best fit model we have to look at the adjusted R square value, higher the value of adjusted R square, better the good fit model it is and considering the CP value, lower the CP value, better fit your model is. In this case we get higher adjusted R2 for the 8 predictor model and minimum CP value for 6 predictors model.Our main goal is to minimize the predictors so for this we will consider the 6 predictor model.
+
+The good fit model obtain is 
+
+```{r}
+flight.ind.ex <- lm(formula = FARE ~ VACATION + SW + E_INCOME + SLOT + GATE + DISTANCE , data = t.df2)
+summary(flight.ind.ex)
+
+#Predicting by running on validation dataset
+flight.ind.ex.pred <- predict(flight.ind.ex, v.df2)
+#Accuracy report
+accuracy(flight.ind.ex.pred, v.df2$FARE)
+```
+#From the above summary output, all the varaiables are statically significant which means that all the predictors are good to predict FARE of the flights and also looking at the RMSE value we know that when the model has lower RMSE it is a good model hence, it is a good fit model for the flight independent varaiables to predict fare.
+
+Q 2 part c ix
+
+```{r}
+df3 <- data.frame("COUPON" = 1.202, "NEW" = 3, "VACATION" = "No", "SW" = "No","HI" = 4442.141, "S_INCOME" = 28760, "E_INCOME" = 27664,"S_POP" = 4557004, "E_POP" = 3195503, "SLOT" = "Free","GATE" = "Free", "PAX" = 12782, "DISTANCE" = 1976)
+
+ predict(flight.ind.ex, df3)
+ #Interpretation: Using the 6 predictors, best fit model obtained from running the exhaustive search model, by running the trained model on the given values for each characteristics, we obtain the average fare value of $250.4392 
+```
+Q 2 part c x
+#Predictive accuracy of model 3 exhaustive model
+##Predictive accuracy of the exhaustive search model 
+#Choosing the 11 predictor model - exhaustive search model 
+```{r}
+exh.model.lm <- lm(formula = FARE ~ VACATION + SW + HI + S_INCOME + E_INCOME + S_POP + E_POP + SLOT + GATE + DISTANCE + PAX, data = t.df2)
+summary(exh.model.lm)
+
+#Predicting by running on validation dataset
+exh.model.lm.pred <- predict(exh.model.lm, v.df2)
+#Accuracy report
+accuracy(exh.model.lm.pred, v.df2$FARE)
+```
+
+#Predictive accuracy of the independent flight varaiables model
+```{r}
+flight.ind.ex <- lm(formula = FARE ~ VACATION + SW + E_INCOME + SLOT + GATE + DISTANCE , data = t.df2)
+summary(flight.ind.ex)
+
+#Predicting by running on validation dataset
+flight.ind.ex.pred <- predict(flight.ind.ex, v.df2)
+#Accuracy report
+accuracy(flight.ind.ex.pred, v.df2$FARE)
+```
+#Comparing the RMSE of both the models from their accuracy report we see that the exhaustive search model = 35.14331 and RMSE calculated with the new model has = 36.257. Comapring both we can see that RMSE of this model is bit higher than this model. Hence we know that lower the RMSE value better the model is to predict target varaiable. Hence looking at it only we say that the previous model we obtain from exhaustive search is better fit than this one but still we say that the difference of both RMSE value is not very big.One thing to notice is the ME which is higher for this model and very very low for the previous. The previous model is better than this one .
+
+Q2 part D 
+
+#The world is full of oppurtunity and challanges and to stay on the top of the industry businesses need to make changes according to the customers need and wants and to do that creativity plays a vital role in terms of both the conceptual and techniqual aspects. 
+#In terms of the connceptual aspect the most important thing is to keep up the attraction and satisfaction for the customers up to date and high standard. 
+#If the analysis is just limited to find that how sothwest airlines has effect on the industry then our main goal will be to what soutwest offers and how it is unique as compare to the other airlines.
+#Predicting fare only could not only keep an airline on the top of the market industry, other factors like services and it's routes also matters.
+#Techniqual aspect could be that uptil now for this we only used linear regression but for other analysis in which we want to predict how soutwest can be on the top of the industry then we have to run advance level techniques which anlysis the performace of the south west airline i.e time series and naive bays and etc.
+#Also comperative analysis with the bigger airlines can also help to deduce that what can south west do in terms of getting top position and higher sales and profitability.The predictive analysis will help for south west airline to adapt new strategies that will generate more sales and get bigger market share.
+
+
+
